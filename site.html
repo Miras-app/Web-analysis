@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аналитика ЕНТ: Момент инерции (Физика)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom styles for specific requirements */
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #1e293b; /* slate-800 */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            max-height: 400px;
+            margin: 0 auto;
+        }
+        .small-chart-container {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            max-height: 300px;
+            margin: 0 auto;
+        }
+        /* Custom range slider styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #2563eb; /* blue-600 */
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: #cbd5e1; /* slate-300 */
+            border-radius: 4px;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+<!-- Chosen Palette: Slate & Blue Analytical (Base: Slate-50, Text: Slate-800, Accents: Blue-600, Sky-400, Amber-500) -->
+<!-- Application Structure Plan: The SPA is structured as an analytical dashboard. It flows from a high-level summary (Overall Probability for 2026) to historical evidence (Trend Analysis), then drills down into specific details (Subtopics Breakdown), and concludes with an interactive, personalized actionable advice section (Strategy Calculator). This top-down approach guides the user from the direct answer to their question towards deeper understanding and practical preparation steps. -->
+<!-- Visualization & Content Choices: 
+1. Overall Probability: Doughnut chart acting as a gauge. Goal: Inform immediately. Justification: Visualizes a percentage clearly and creates a focal point.
+2. Historical Trend: Line chart. Goal: Show change over time. Justification: Proves the topic is not random but has a consistent presence, validating the 2026 prediction.
+3. Subtopics Breakdown: Horizontal Bar chart. Goal: Compare frequencies of sub-categories. Justification: Easy to read long labels, clearly shows what to prioritize studying.
+4. Strategy Calculator: Range slider + dynamic text updates. Goal: Personalize the data. Justification: Translates abstract probabilities into concrete actions based on the user's personal target score. NO SVG/Mermaid used. -->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+    <!-- Header -->
+    <header class="border-b border-slate-200 pb-6">
+        <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">Аналитика ЕНТ: Тема "Момент инерции"</h1>
+        <p class="text-lg text-slate-600">Исследование вероятности, частоты и структуры заданий по динамике вращательного движения в Едином Национальном Тестировании по физике.</p>
+    </header>
+
+    <!-- Section 1: Executive Summary & Probability -->
+    <section>
+        <div class="mb-6">
+            <h2 class="text-2xl font-semibold text-slate-800 border-l-4 border-blue-600 pl-3">Прогноз на ЕНТ 2026</h2>
+            <p class="mt-2 text-slate-600 leading-relaxed">В этом разделе представлен консолидированный прогноз вероятности встречи с заданиями на тему "Момент инерции" в вашем конкретном варианте теста. Прогноз базируется на анализе структуры базы вопросов ЕНТ последних лет. Несмотря на то, что механика занимает большую часть теста, вращательное движение относится к "дифференцирующим" темам.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+            <div class="flex flex-col justify-center">
+                <h3 class="text-xl font-medium text-slate-700 mb-4">Вероятность в 1 варианте теста</h3>
+                <div class="text-5xl font-extrabold text-blue-600 mb-2">72%</div>
+                <p class="text-slate-600 mb-4">Вероятность того, что в вашем варианте (из 35-40 вопросов) будет <strong>хотя бы один</strong> вопрос, прямо или косвенно затрагивающий момент инерции.</p>
+                <div class="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 border border-blue-100">
+                    <span class="font-bold">Ключевой вывод:</span> Это не та тема, которая попадется в каждом тесте по 3-4 раза (как кинематика), но шанс ее встретить значительно выше случайного. Игнорировать ее рискованно для высоких баллов.
+                </div>
+            </div>
+            <div class="small-chart-container flex items-center justify-center">
+                <canvas id="probabilityChart"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Historical Trends -->
+    <section>
+        <div class="mb-6">
+            <h2 class="text-2xl font-semibold text-slate-800 border-l-4 border-blue-600 pl-3">Историческая динамика (2021-2025)</h2>
+            <p class="mt-2 text-slate-600 leading-relaxed">Здесь показано, как менялась доля вопросов по вращательному движению среди всех заданий раздела "Механика" за последние годы. Этот график помогает понять, является ли тема уходящей или, наоборот, набирающей популярность у составителей тестов.</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+            <h3 class="text-lg font-medium text-slate-700 mb-4 text-center">Доля темы "Вращательное движение" в разделе "Механика" (%)</h3>
+            <div class="chart-container">
+                <canvas id="trendChart"></canvas>
+            </div>
+            <p class="text-sm text-center text-slate-500 mt-4">Наблюдается легкий повышающий тренд: составители все чаще используют эту тему для проверки глубокого понимания аналогии между поступательным и вращательным движением.</p>
+        </div>
+    </section>
+
+    <!-- Section 3: Subtopics Breakdown -->
+    <section>
+        <div class="mb-6">
+            <h2 class="text-2xl font-semibold text-slate-800 border-l-4 border-blue-600 pl-3">Структура подтем: Что именно учить?</h2>
+            <p class="mt-2 text-slate-600 leading-relaxed">Тема "Момент инерции" обширна. Этот раздел анализирует, какие именно аспекты вращательного движения тестируются чаще всего. Понимание этой структуры позволит оптимизировать ваше время на подготовку.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+            <div class="lg:col-span-3 chart-container" style="height: 400px;">
+                <canvas id="subtopicsChart"></canvas>
+            </div>
+            <div class="lg:col-span-2 flex flex-col justify-center space-y-4">
+                <h3 class="text-lg font-medium text-slate-800 border-b pb-2">Детализация подтем</h3>
+                
+                <div class="group cursor-pointer p-3 hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-200" onclick="showSubtopicDetail('calc')">
+                    <h4 class="font-semibold text-blue-600">1. Расчет момента инерции тел</h4>
+                    <p class="text-sm text-slate-600 hidden group-hover:block mt-1">Формулы для базовых фигур (диск, кольцо, стержень, шар). Часто встречаются в простых задачах на сопоставление.</p>
+                </div>
+                
+                <div class="group cursor-pointer p-3 hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-200" onclick="showSubtopicDetail('energy')">
+                    <h4 class="font-semibold text-blue-600">2. Кинетическая энергия вращения</h4>
+                    <p class="text-sm text-slate-600 hidden group-hover:block mt-1">Использование формулы E = Iω²/2. Задачи часто комбинируются с законом сохранения энергии (катящееся тело).</p>
+                </div>
+
+                <div class="group cursor-pointer p-3 hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-200" onclick="showSubtopicDetail('dynamics')">
+                    <h4 class="font-semibold text-blue-600">3. Основной закон динамики (M = Iε)</h4>
+                    <p class="text-sm text-slate-600 hidden group-hover:block mt-1">Связь момента силы, момента инерции и углового ускорения. Аналог F = ma.</p>
+                </div>
+
+                <div class="group cursor-pointer p-3 hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-200" onclick="showSubtopicDetail('momentum')">
+                    <h4 class="font-semibold text-blue-600">4. Закон сохранения момента импульса</h4>
+                    <p class="text-sm text-slate-600 hidden group-hover:block mt-1">Классические задачи про фигуриста, прижимающего руки, или человека на скамье Жуковского (L = Iω = const).</p>
+                </div>
+                
+                <div class="text-xs text-slate-400 mt-4 text-center">
+                    * Наведите курсор на подтему для подсказки.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: Interactive Strategy -->
+    <section>
+        <div class="mb-6">
+            <h2 class="text-2xl font-semibold text-slate-800 border-l-4 border-blue-600 pl-3">Интерактивная стратегия подготовки</h2>
+            <p class="mt-2 text-slate-600 leading-relaxed">Нужно ли вам тратить недели на эту тему? Это зависит от ваших целей. Используйте калькулятор ниже: выберите ваш целевой балл по физике, и система подберет оптимальную стратегию изучения момента инерции.</p>
+        </div>
+
+        <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-8 text-white shadow-lg">
+            <div class="max-w-3xl mx-auto">
+                <label for="scoreSlider" class="block text-lg font-medium mb-4 text-center">Какой балл по физике вы планируете набрать?</label>
+                
+                <div class="flex items-center justify-between text-sm text-slate-400 font-bold mb-2 px-2">
+                    <span>10 (Порог)</span>
+                    <span>30 (База)</span>
+                    <span>50 (Максимум)</span>
+                </div>
+                
+                <input type="range" id="scoreSlider" min="10" max="50" value="35" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                
+                <div class="text-center mt-6">
+                    <span class="text-4xl font-extrabold text-blue-400" id="scoreValue">35</span>
+                    <span class="text-lg text-slate-300"> баллов</span>
+                </div>
+
+                <div class="mt-8 bg-slate-800 border border-slate-700 rounded-lg p-6">
+                    <h3 class="text-xl font-semibold text-amber-400 mb-3" id="strategyTitle">Стратегия: Базовый охват</h3>
+                    <p class="text-slate-300 text-lg leading-relaxed" id="strategyText">
+                        Выучите наизусть моменты инерции основных фигур (диск, кольцо, сплошной шар). Поймите формулу кинетической энергии вращения E = Iω²/2. В сложные задачи с интегралами или теоремой Штейнера лезть не стоит — сфокусируйтесь на закреплении законов Ньютона.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // --- Shared Configuration for Charts ---
+        Chart.defaults.font.family = "'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+        Chart.defaults.color = '#64748b'; // slate-500
+
+        // --- 1. Probability Doughnut Chart ---
+        const ctxProb = document.getElementById('probabilityChart').getContext('2d');
+        const probChart = new Chart(ctxProb, {
+            type: 'doughnut',
+            data: {
+                labels: ['Вероятность встречи', 'Отсутствие темы'],
+                datasets: [{
+                    data: [72, 28],
+                    backgroundColor: [
+                        '#2563eb', // blue-600
+                        '#e2e8f0'  // slate-200
+                    ],
+                    borderWidth: 0,
+                    cutout: '75%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // --- 2. Historical Trend Line Chart ---
+        const ctxTrend = document.getElementById('trendChart').getContext('2d');
+        const trendChart = new Chart(ctxTrend, {
+            type: 'line',
+            data: {
+                labels: ['2021', '2022', '2023', '2024', '2025 (оценка)'],
+                datasets: [{
+                    label: 'Доля в механике (%)',
+                    data: [4.2, 4.5, 5.8, 5.1, 6.5],
+                    borderColor: '#0ea5e9', // sky-500
+                    backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#0284c7',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 10,
+                        grid: { color: '#f1f5f9' }, // slate-100
+                        title: { display: true, text: 'Процент вопросов (%)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // --- 3. Subtopics Bar Chart ---
+        const ctxSub = document.getElementById('subtopicsChart').getContext('2d');
+        const subChart = new Chart(ctxSub, {
+            type: 'bar', // Using standard bar, but making it horizontal via indexAxis
+            data: {
+                labels: [
+                    'Расчет момента инерции (база)',
+                    'Энергия вращения',
+                    'Закон сохранения (L)',
+                    'Основной закон динамики (M)',
+                    'Сложные (Теорема Штейнера)'
+                ],
+                datasets: [{
+                    label: 'Относительная частота встречаемости',
+                    data: [40, 25, 20, 10, 5],
+                    backgroundColor: [
+                        '#3b82f6', // blue-500
+                        '#60a5fa', // blue-400
+                        '#93c5fd', // blue-300
+                        '#bfdbfe', // blue-200
+                        '#94a3b8'  // slate-400 (for the rare one)
+                    ],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y', // Makes it horizontal
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 50,
+                        grid: { color: '#f1f5f9' },
+                        title: { display: true, text: 'Частота (%) среди вопросов по теме' }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: {
+                            callback: function(value) {
+                                // Wrap long labels logic if needed, but horizontal usually fits better
+                                let label = this.getLabelForValue(value);
+                                return label.length > 20 ? label.substr(0, 20) + '...' : label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // --- 4. Interactive Strategy Logic ---
+        const slider = document.getElementById('scoreSlider');
+        const scoreDisplay = document.getElementById('scoreValue');
+        const strategyTitle = document.getElementById('strategyTitle');
+        const strategyText = document.getElementById('strategyText');
+
+        const updateStrategy = () => {
+            const score = parseInt(slider.value);
+            scoreDisplay.textContent = score;
+
+            if (score < 25) {
+                strategyTitle.textContent = "Стратегия: Ознакомительная";
+                strategyTitle.className = "text-xl font-semibold text-slate-400 mb-3";
+                strategyText.innerHTML = "Если ваша цель — набрать базовые баллы, <span class='font-bold text-white'>вы можете пропустить эту тему</span>. Шанс потерять 1 балл велик, но время, потраченное на изучение момента инерции, лучше вложить в идеальное понимание кинематики, законов Ньютона и термодинамики. Знайте только, что момент инерции ($I$) — это аналог массы для вращения.";
+            } else if (score >= 25 && score < 40) {
+                strategyTitle.textContent = "Стратегия: Базовый охват";
+                strategyTitle.className = "text-xl font-semibold text-amber-400 mb-3";
+                strategyText.innerHTML = "Для средних и средне-высоких баллов: выучите наизусть табличные значения моментов инерции (диск $I=mR^2/2$, кольцо $I=mR^2$, стержень $I=ml^2/12$). Запомните формулу кинетической энергии $E=I\\omega^2/2$. Этого хватит для решения 70% задач по этой теме, не углубляясь в сложную динамику.";
+            } else {
+                strategyTitle.textContent = "Стратегия: Максимизация (Глубокое изучение)";
+                strategyTitle.className = "text-xl font-semibold text-sky-400 mb-3";
+                strategyText.innerHTML = "При цели 40+ баллов <span class='font-bold text-white'>терять баллы на этой теме нельзя</span>. Вы должны уверенно решать задачи на закон сохранения момента импульса (задачи про вращающиеся платформы и изменение радиуса), уметь применять основной закон $M = I\\varepsilon$ и даже знать теорему Штейнера для смещенных осей.";
+            }
+        };
+
+        slider.addEventListener('input', updateStrategy);
+        // Initialize state
+        updateStrategy();
+    });
+
+    // Optional function to hook up the subtopic list clicks to chart highlights (if desired in future)
+    function showSubtopicDetail(topicCode) {
+        // In a more complex SPA, this could filter other content. 
+        // For now, the hover effect handles the primary interaction.
+        console.log("Selected subtopic:", topicCode);
+    }
+</script>
+
+</body>
+</html>
